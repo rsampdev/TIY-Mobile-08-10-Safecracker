@@ -15,3 +15,7 @@
 #endif /* SafeFunctions_h */
 
 bool compareCodes(int * safeCode, int userCode[4][4], int index);
+
+int percentageOfCodesAlike(int safeCode[4], int codeGuess[4][4], int index);
+
+void printUserSafeCodeGuess(int codeGuess[4][4], int index);
