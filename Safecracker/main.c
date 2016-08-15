@@ -11,7 +11,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <limits.h>
 #include <math.h>
 #include "SafeFunctions.h"
 
@@ -32,6 +31,7 @@ void start() {
     int numberOfItemsScanned = 0;
     int guessLimit = 3; // take in user unput to set this
     int timesGuessed = 0;
+    char choice = '\0';
     
     printf("Welcome to Safecracker!\n\nThe game where you are a burgular trying to break into a safe.\n\nGuess the safe code before the cops show up.\n\nThe safe code is only 4 numbers long and the numbers are only 0 through a max number value that you set.\n\n~Because the person trying to break into the safe always chooses the max number for the code?~\n\n"); // take in user unput to set this
     
@@ -39,18 +39,21 @@ void start() {
         fpurge(stdin);
         printf("What is your burgular's name?\n\n");
         numberOfItemsScanned = scanf("%[^\n]", userInput);
-        printf("\n");
     }
     
     numberOfItemsScanned = 0;
     
-    int maxNumberValue = INT_MAX;
+    int maxNumberValue = 3;
     
     while (numberOfItemsScanned != 1) {
         fpurge(stdin);
-        printf("What is the max value for a number?\n\n");
+        printf("\nWhat is the max value for a number? It can not be greater than 9.\n\n");
         numberOfItemsScanned = scanf("%d", &maxNumberValue);
-        printf("\n");
+        
+        if (maxNumberValue > 9) {
+            numberOfItemsScanned = 0;
+            continue;
+        }
     }
     
     numberOfItemsScanned = 0;
@@ -62,16 +65,20 @@ void start() {
     userName = userInput;
     numberOfItemsScanned = 0;
     
-    printf("Remember if you enter a number larger than the max number value it will be reduced to the max number value.\n\nNow let's get cracking!\n");
+    printf("\nRemember if you enter a number larger than the max number value it will be reduced to the max number value.\n\nNow let's get cracking!\n");
     
     while (timesGuessed < guessLimit) {
+        if (choice == 'c') {
+            break;
+        }
+        
         fpurge(stdin);
         printf("\nEnter all of the numbers for your guess with a dash between each single digit. Like this: 1-2-3-0\n\n");
-        numberOfItemsScanned = scanf("%d %d %d %d", &userSafeCodeGuess[timesGuessed][0], &userSafeCodeGuess[timesGuessed][1], &userSafeCodeGuess[timesGuessed][2], &userSafeCodeGuess[timesGuessed][3]);
+        numberOfItemsScanned = scanf("%d-%d-%d-%d", &userSafeCodeGuess[timesGuessed][0], &userSafeCodeGuess[timesGuessed][1], &userSafeCodeGuess[timesGuessed][2], &userSafeCodeGuess[timesGuessed][3]);
         
         for (int i = 0; i < safeCodeLength; i++) {
             if (userSafeCodeGuess[timesGuessed][0] > maxNumberValue) {
-                userSafeCodeGuess[timesGuessed][0] = abs(maxNumberValue);
+                userSafeCodeGuess[timesGuessed][0] = maxNumberValue;
             }
         }
         
@@ -91,17 +98,16 @@ void start() {
                     printf("\n%s, you did not guess the right code for the safe.\n\n", userName);
                     printf("%s, you got %d/4 of the numbers right", userName, percentageOfCodesAlike(safeCode, userSafeCodeGuess, timesGuessed));
                     
-                    char choice = '0';
                     printf("\n\nType 't' to try again, 'p' to print your past guesses or 'c' to close the game.\n\n");
                     fpurge(stdin);
                     numberOfItemsScanned = scanf("%c", &choice);
                     timesGuessed++;
                     
-                    while (numberOfItemsScanned != 1) {
-                        if (choice == (int)'t') {
+                    while (numberOfItemsScanned == 1) {
+                        if (choice == 't') {
                             printf("\n%d try(s) left\n", guessLimit - (timesGuessed));
-                        } else if(choice == (int)'p') {
-                            
+                            break;
+                        } else if(choice == 'p') {
                             int turnNumber = timesGuessed + 1;
                             
                             while (turnNumber >= timesGuessed) {
@@ -111,13 +117,21 @@ void start() {
                                 numberOfItemsScanned = scanf("%d", &turnNumber);
                                 
                                 if (turnNumber <= timesGuessed) {
-                                    printf("\n| guess %d | %d %d %d %d | %d/4 |\n", timesGuessed + 1, userSafeCodeGuess[turnNumber - 1][0], userSafeCodeGuess[turnNumber - 1][1], userSafeCodeGuess[turnNumber - 1][2], userSafeCodeGuess[turnNumber - 1][3], percentageOfCodesAlike(safeCode, userSafeCodeGuess, turnNumber));
+                                    printf("\n| guess %d | %d %d %d %d | %d/4 |\n", timesGuessed, userSafeCodeGuess[turnNumber - 1][0], userSafeCodeGuess[turnNumber - 1][1], userSafeCodeGuess[turnNumber - 1][2], userSafeCodeGuess[turnNumber - 1][3], percentageOfCodesAlike(safeCode, userSafeCodeGuess, turnNumber));
+                                    
+                                    printf("\n\nType 't' to try again, 'p' to print your past guesses or 'c' to close the game.\n\n");
+                                    fpurge(stdin);
+                                    scanf("%c", &choice);
+                                    
+                                    if (choice == 't' || choice == 'c') {
+                                        break;
+                                    }
                                 } else {
                                     printf("You have not completed that turn yet or that is not a valid turn. Try again.\n\n");
                                     continue;
                                 }
                             }
-                        } else if(choice == (int)'c') {
+                        } else if(choice == 'c') {
                             sleep(1);
                             printf("\nclosing...\n\n");
                             sleep(1);
@@ -130,9 +144,7 @@ void start() {
                 }
             }
         } else {
-            printf("\n");
-            start();
-            break;
+            continue;
         }
         
     }
